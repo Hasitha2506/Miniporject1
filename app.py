@@ -18,7 +18,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
-from xgboost_model import load_model, predict as xgb_predict
+# ONLY CHANGE 1 — import
+from ensemble_model import load_model, predict as ensemble_predict
 import warnings
 
 warnings.filterwarnings("ignore")
@@ -212,39 +213,38 @@ def make_ml_prediction(
     district: str,
     state: str,
     selected_date: pd.Timestamp,
-) -> float | None:
-    """
-    Builds a single-row DataFrame matching the pipeline schema and calls
-    xgb_predict() to get a predicted daily rainfall value (mm).
-    """
+):
+
     month = selected_date.month
+
     if month in {6, 7, 8, 9}:     season = "Kharif"
     elif month in {10, 11, 12, 1, 2}: season = "Rabi"
     else:                          season = "Zaid"
 
     input_df = pd.DataFrame({
-        "date"          : [selected_date],
-        "state_name"    : [state],
-        "district_name" : [district],
-        "rainfall_mm"   : [np.nan],   # target column — dropped inside predict()
-        "season"        : [season],
-        "year"          : [selected_date.year],
-        "month"         : [month],
-        "week_number"   : [selected_date.isocalendar().week],
+        "date": [selected_date],
+        "state_name": [state],
+        "district_name": [district],
+        "rainfall_mm": [np.nan],
+        "season": [season],
+        "year": [selected_date.year],
+        "month": [month],
+        "week_number": [selected_date.isocalendar().week],
+        "departure_pct": [0]  # required for classifier
     })
 
     try:
-        result = xgb_predict(model, input_df)
-        return max(0.0, float(result[0]))
+        labels, probs = ensemble_predict(model, input_df)
+
+        pred_label = labels[0]
+        confidence = float(np.max(probs[0]) * 100)
+
+        return pred_label, confidence
+
     except Exception as e:
         st.warning(f"ML prediction failed: {e}")
         return None
-
-
-# =============================================================================
-# SECTION 5 — CHART FUNCTIONS
-# =============================================================================
-
+    
 def plot_rainfall_trend(seasonal_df: pd.DataFrame, district: str):
     dist_data = seasonal_df[
         (seasonal_df["district_name"] == district) &
@@ -405,11 +405,14 @@ def main():
     primary_colour = get_colour_for_probability(empirical_prob)
 
     # ── XGBoost daily rainfall prediction ─────────────────────────────────
-    ml_predicted_mm = None
-    if model is not None:
-        ml_predicted_mm = make_ml_prediction(
-            model, selected_district, selected_state, selected_date
-        )
+    ml_result = make_ml_prediction(
+        model, selected_district, selected_state, selected_date
+    )
+
+    if ml_result:
+        pred_label, confidence = ml_result
+    else:
+        pred_label, confidence = None, None
 
     # Monthly daily LPA for comparison
     month_lpa_rows = monthly_df[
@@ -437,21 +440,20 @@ def main():
         )
 
     with col2:
-        if ml_predicted_mm is not None:
-            ml_colour  = get_colour_for_rainfall(ml_predicted_mm, month_daily_lpa or 1.0)
-            ml_display = f"{ml_predicted_mm:.1f} mm"
-            ml_note    = f"Predicted daily rainfall · {selected_date.strftime('%d %b %Y')}"
-            lpa_note   = (f"Month daily LPA ≈ {month_daily_lpa:.1f} mm/day"
-                          if month_daily_lpa else "LPA data unavailable")
+        if pred_label is not None:
+            ml_colour  = "blue"  # classification → no numeric comparison
+            ml_display = pred_label
+            ml_note    = f"Confidence: {confidence:.1f}%"
+            lpa_note   = "Ensemble classification model"
         else:
             ml_colour  = "gray"
             ml_display = "N/A"
             ml_note    = "Model not loaded"
-            lpa_note   = "Run xgboost_model.py first to train and save the model"
+            lpa_note   = "Run ensemble_model.py first"
 
         st.markdown(
             f"""<div class="metric-card">
-                <div class="metric-label">XGBoost Prediction</div>
+                <div class="metric-label">Ensemble Prediction</div>
                 <div class="metric-value-{ml_colour}">{ml_display}</div>
                 <div class="metric-sublabel">{ml_note}<br>{lpa_note}</div>
             </div>""",
