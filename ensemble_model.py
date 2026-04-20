@@ -31,14 +31,16 @@ def classify_rainfall(dep):
 # ======================================
 # FEATURE ENGINEERING
 # ======================================
-def prepare_features(df):
+def prepare_features(df, is_predict=False):
     df = df.copy()
 
-    # --- target ---
-    df["rainfall_class"] = df["departure_pct"].apply(classify_rainfall)
-
-    le_target = LabelEncoder()
-    df["target"] = le_target.fit_transform(df["rainfall_class"])
+    # --- target (only during training) ---
+    if not is_predict:
+        df["rainfall_class"] = df["departure_pct"].apply(classify_rainfall)
+        le_target = LabelEncoder()
+        df["target"] = le_target.fit_transform(df["rainfall_class"])
+    else:
+        le_target = None
 
     # --- time features ---
     df['month_sin'] = np.sin(2 * np.pi * df['month'] / 12)
@@ -52,16 +54,18 @@ def prepare_features(df):
     df["state_name_enc"] = le_state.fit_transform(df["state_name"].astype(str))
 
     # --- DROP ALL NON-NUMERIC / UNUSED ---
-    df = df.drop(columns=[
+    drop_cols = [
         "rainfall_class",
         "date",
         "Year",
         "Month",
         "season",
         "anomaly_category",
-        "state_name",        # 🔥 critical fix
-        "district_name"      # 🔥 critical fix
-    ], errors="ignore")
+        "state_name",
+        "district_name",
+        "departure_pct",  # CRITICAL: drop this so it doesn't reach the model
+    ]
+    df = df.drop(columns=drop_cols, errors="ignore")
 
     return df, le_target
 
@@ -70,9 +74,9 @@ def prepare_features(df):
 # ======================================
 def train_model(df):
 
-    df, le_target = prepare_features(df)
+    df, le_target = prepare_features(df, is_predict=False)
 
-    X = df.drop(columns=["target", "departure_pct"])
+    X = df.drop(columns=["target"])
     y = df["target"]
 
     X_train, X_test, y_train, y_test = train_test_split(
@@ -150,7 +154,7 @@ def predict(model_dict, df):
     model = model_dict["model"]
     le = model_dict["label_encoder"]
 
-    df, _ = prepare_features(df)
+    df, _ = prepare_features(df, is_predict=True)
     df = df.drop(columns=["target"], errors="ignore")
 
     preds = model.predict(df)
