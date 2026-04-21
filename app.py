@@ -787,7 +787,7 @@ def main():
             return colours.get(val, "")
 
         styled = dist_seasonal.style\
-            .applymap(colour_anomaly, subset=["anomaly_category"])\
+            .map(colour_anomaly, subset=["anomaly_category"])\
             .format({
                 "total_rainfall_mm": "{:.1f}",
                 "lpa_mm"           : "{:.1f}",
