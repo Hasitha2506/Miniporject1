@@ -1,7 +1,7 @@
 """
 =============================================================================
 RAINFALL ANALYSIS & PREDICTION FRAMEWORK
-Step 4: Streamlit Dashboard — The Farmer's Interface
+Step 4: Streamlit Dashboard — The Farmer's Interface  (TABBED LAYOUT)
 =============================================================================
 Purpose : Interactive dashboard for farmers and agricultural officers.
           Loads pre-processed CSVs and the trained ML model to display:
@@ -28,37 +28,32 @@ warnings.filterwarnings("ignore")
 # Must be the FIRST streamlit command in the script.
 # =============================================================================
 
-st.markdown(
-    f'<div class="main-title">🌧️ Rainfall Analysis Dashboard</div>'
-    f'<div class="main-subtitle">District-wise monsoon intelligence for Kharif crop planning</div>',
-    unsafe_allow_html=True
+st.set_page_config(
+    page_title="Rainfall Analysis Dashboard",
+    page_icon="🌧️",
+    layout="wide",
+    initial_sidebar_state="expanded",
 )
 
 # =============================================================================
 # SECTION 2 — CUSTOM CSS STYLING
-# Streamlit allows injecting raw CSS via st.markdown with unsafe_allow_html.
-# This gives us control over fonts, colors, and card styling.
 # =============================================================================
 
 st.markdown("""
 <style>
-    /* Import a clean, readable Google Font */
     @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono&display=swap');
 
-    /* Apply font globally */
     html, body, [class*="css"] {
         font-family: 'IBM Plex Sans', sans-serif;
     }
 
-    /* Main title styling */
     .main-title {
         font-size: 2.5rem;
         font-weight: 800;
-        color: #2c7be5;                
+        color: #2c7be5;
         margin-bottom: 0;
         letter-spacing: -0.5px;
     }
-
     .main-subtitle {
         font-size: 1.25rem;
         color: #999;
@@ -66,7 +61,7 @@ st.markdown("""
         font-weight: 300;
     }
 
-    /* Metric cards */
+    /* ── Metric cards ──────────────────────────────── */
     .metric-card {
         display: flex;
         flex-direction: column;
@@ -74,13 +69,12 @@ st.markdown("""
         background: white;
         border-radius: 12px;
         padding: 24px;
-        min-height: 140px; /* force equal height baseline */
+        min-height: 140px;
         border: 1px solid #e8e8e8;
         box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         text-align: center;
         margin-bottom: 16px;
     }
-
     .metric-label {
         font-size: 0.78rem;
         font-weight: 500;
@@ -89,29 +83,26 @@ st.markdown("""
         color: #888;
         margin-bottom: 8px;
     }
-
     .metric-value-green  { font-size: 3rem; font-weight: 600; color: #2d7a4f; line-height: 1; }
     .metric-value-blue   { font-size: 3rem; font-weight: 600; color: #1a5fa8; line-height: 1; }
     .metric-value-orange { font-size: 3rem; font-weight: 600; color: #c07a00; line-height: 1; }
     .metric-value-red    { font-size: 3rem; font-weight: 600; color: #b03030; line-height: 1; }
     .metric-value-gray   { font-size: 3rem; font-weight: 600; color: #555;    line-height: 1; }
-
     .metric-sublabel {
         font-size: 0.85rem;
         color: #999;
         margin-top: 6px;
     }
 
-    /* Advice card */
+    /* ── Advice cards ──────────────────────────────── */
     .advice-card-green  { background:#f0faf4; border-left:4px solid #2d7a4f; border-radius:8px; padding:20px; }
     .advice-card-blue   { background:#f0f6ff; border-left:4px solid #1a5fa8; border-radius:8px; padding:20px; }
     .advice-card-orange { background:#fff8e6; border-left:4px solid #c07a00; border-radius:8px; padding:20px; }
     .advice-card-red    { background:#fff0f0; border-left:4px solid #b03030; border-radius:8px; padding:20px; }
-
     .advice-title { font-size:1rem; font-weight:600; margin-bottom:8px; }
     .advice-body  { font-size:0.92rem; line-height:1.7; color:#333; }
 
-    /* Section headers */
+    /* ── Section headers ───────────────────────────── */
     .section-header {
         font-size: 0.72rem;
         font-weight: 600;
@@ -124,7 +115,7 @@ st.markdown("""
         margin-top: 8px;
     }
 
-    /* Info banner */
+    /* ── Banners ───────────────────────────────────── */
     .info-banner {
         background: #f8f9ff;
         border: 1px solid #dde3ff;
@@ -134,8 +125,6 @@ st.markdown("""
         color: #445;
         margin-bottom: 16px;
     }
-
-    /* Warning banner */
     .warn-banner {
         background: #fffbf0;
         border: 1px solid #ffe082;
@@ -146,7 +135,48 @@ st.markdown("""
         margin-bottom: 16px;
     }
 
-    /* Hide Streamlit branding */
+    /* ── Tab styling ───────────────────────────────── */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+        border-bottom: 2px solid #e8e8e8;
+        padding-bottom: 0;
+    }
+    .stTabs [data-baseweb="tab"] {
+        font-size: 0.82rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        padding: 10px 20px;
+        border-radius: 6px 6px 0 0;
+        color: #888;
+    }
+    .stTabs [aria-selected="true"] {
+        color: #2c7be5 !important;
+        background: #f0f6ff !important;
+        border-bottom: 2px solid #2c7be5 !important;
+    }
+    .stTabs [data-baseweb="tab-panel"] {
+        padding-top: 24px;
+    }
+
+    /* ── Chart container card ──────────────────────── */
+    .chart-card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        border: 1px solid #e8e8e8;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        margin-bottom: 24px;
+    }
+    .chart-label {
+        font-size: 0.72rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: #aaa;
+        margin-bottom: 12px;
+    }
+
     #MainMenu {visibility: hidden;}
     footer    {visibility: hidden;}
 </style>
@@ -155,29 +185,17 @@ st.markdown("""
 
 # =============================================================================
 # SECTION 3 — DATA & MODEL LOADERS
-# @st.cache_data tells Streamlit: "load this once, then reuse from memory".
-# Without caching, every slider move or dropdown change would reload the CSV.
 # =============================================================================
 
 @st.cache_data
 def load_processed_data():
-    """
-    Loads all four processed CSVs directly from Google Drive.
-    To update: replace the file ID strings below with your own.
-    Get the file ID from the sharing link:
-      https://drive.google.com/drive/folders/19YpQ1g7SOaZup3iLS75Gme315cnpfg7Q?usp=drive_link
-    """
-
-    # ── Paste your Google Drive file IDs here ──────────────────────────
     FILE_IDS = {
         "monthly"     : "1AY2n7HBfu0BsrLlDL80iflWqlqLSYiMH",
         "seasonal"    : "1rnbhP44S_gah-v7L6BRJKBZInwLSLjDG",
         "probability" : "1wHgLiXOuvqLmpzaPSoj73rWpTPmHYgp2",
     }
-    # ───────────────────────────────────────────────────────────────────
 
     def drive_url(file_id: str) -> str:
-        # Converts a Drive file ID into a direct download URL pandas can read
         return f"https://drive.google.com/uc?export=download&id={file_id}"
 
     data = {}
@@ -197,22 +215,18 @@ def load_processed_data():
 
 @st.cache_resource
 def load_model():
-    """
-    Loads your ensemble (soft-voting: LightGBM + XGBoost + RandomForest).
-    Returns the model_dict saved by ensemble_model.py, or None if not found.
-    """
     model_path = "rainfall_ensemble_model.pkl"
     if not os.path.exists(model_path):
         return None
     import joblib
     return joblib.load(model_path)
 
+
 # =============================================================================
 # SECTION 4 — HELPER FUNCTIONS
 # =============================================================================
 
 def get_colour_for_probability(probability: float) -> str:
-    """Maps a probability % to a colour name used in CSS class names."""
     if probability >= 65:   return "green"
     elif probability >= 50: return "blue"
     elif probability >= 35: return "orange"
@@ -220,10 +234,6 @@ def get_colour_for_probability(probability: float) -> str:
 
 
 def get_advice(probability: float, district: str) -> dict:
-    """
-    Returns a dict with title + bullet-point advice based on probability.
-    Written in plain English for farmers, not data scientists.
-    """
     if probability >= 65:
         return {
             "title"  : "✅ Good monsoon likely — plan for full sowing",
@@ -270,18 +280,8 @@ def get_advice(probability: float, district: str) -> dict:
             ]
         }
 
-def make_ml_prediction(
-    model_dict,
-    district: str,
-    state: str,
-    june_mm: float,
-    seasonal_df: pd.DataFrame,
-    monthly_df: pd.DataFrame,
-) -> tuple:
-    """
-    Runs your ensemble classifier for the selected district.
-    Builds exactly the 11 features the model expects.
-    """
+
+def make_ml_prediction(model_dict, district, state, june_mm, seasonal_df, monthly_df):
     if model_dict is None:
         return None, None
 
@@ -289,24 +289,18 @@ def make_ml_prediction(
         from ensemble_model import predict as ensemble_predict
         from sklearn.preprocessing import LabelEncoder
 
-        # Get most recent June row for this district
         june_rows = monthly_df[
             (monthly_df["district_name"] == district) &
             (monthly_df["month"] == 6)
         ].sort_values("year")
 
         if june_rows.empty:
-            # Fallback to any recent month
-            june_rows = monthly_df[
-                monthly_df["district_name"] == district
-            ].sort_values(["year", "month"])
-
+            june_rows = monthly_df[monthly_df["district_name"] == district].sort_values(["year", "month"])
         if june_rows.empty:
             return None, None
 
         base_row = june_rows.tail(1).copy()
 
-        # Build the exact 11 features
         input_data = {
             'year': int(base_row['year'].iloc[0]) if 'year' in base_row.columns else 2024,
             'month': 6,
@@ -319,7 +313,6 @@ def make_ml_prediction(
             'month_cos': np.cos(2 * np.pi * 6 / 12),
         }
 
-        # Label encode district and state
         le_d = LabelEncoder()
         le_s = LabelEncoder()
         le_d.fit(monthly_df["district_name"].astype(str).unique())
@@ -328,11 +321,9 @@ def make_ml_prediction(
         input_data['district_name_enc'] = le_d.transform([district])[0]
         input_data['state_name_enc'] = le_s.transform([state])[0] if state in le_s.classes_ else 0
 
-        # Also need departure_pct for the ensemble's classification logic
         june_lpa = input_data['lpa_mm']
         departure_pct = ((june_mm - june_lpa) / june_lpa * 100) if june_lpa > 0 else 0.0
 
-        # Create DataFrame with BOTH the 11 features + departure_pct
         input_df = pd.DataFrame([input_data])
         input_df['departure_pct'] = departure_pct
         input_df['state_name'] = state
@@ -347,15 +338,9 @@ def make_ml_prediction(
     except Exception as e:
         st.warning(f"ML prediction failed: {e}")
         return None, None
-    
-def plot_rainfall_trend(seasonal_df: pd.DataFrame, district: str) -> plt.Figure:
-    """
-    Draws a bar chart of Kharif season total rainfall per year for the
-    selected district, with the LPA shown as a horizontal reference line.
-    Bars are coloured green (above LPA) or coral (below LPA).
-    """
 
-    # Filter to this district's Kharif rows only
+
+def plot_rainfall_trend(seasonal_df: pd.DataFrame, district: str) -> plt.Figure:
     dist_data = seasonal_df[
         (seasonal_df["district_name"] == district) &
         (seasonal_df["season"] == "Kharif")
@@ -364,37 +349,30 @@ def plot_rainfall_trend(seasonal_df: pd.DataFrame, district: str) -> plt.Figure:
     if dist_data.empty:
         return None
 
-    lpa = dist_data["lpa_mm"].iloc[0]     # LPA is the same for all rows (it's a constant per district)
+    lpa      = dist_data["lpa_mm"].iloc[0]
     years    = dist_data["year"].astype(str).tolist()
     rainfall = dist_data["total_rainfall_mm"].tolist()
-
-    # Colour each bar based on whether it exceeded the LPA
     bar_colours = ["#2d7a4f" if r >= lpa else "#c0392b" for r in rainfall]
 
-    fig, ax = plt.subplots(figsize=(6, 3.5))
+    fig, ax = plt.subplots(figsize=(8, 4.5))
     fig.patch.set_facecolor("#fafafa")
     ax.set_facecolor("#fafafa")
 
-    # Draw bars
     bars = ax.bar(years, rainfall, color=bar_colours, width=0.55,
                   zorder=3, edgecolor="white", linewidth=0.8)
 
-    # LPA reference line
     ax.axhline(y=lpa, color="#1a1a2e", linewidth=1.5,
                linestyle="--", zorder=4, label=f"LPA: {lpa:.0f} mm")
 
-    # Annotate each bar with its value
     for bar, val in zip(bars, rainfall):
         ax.text(
             bar.get_x() + bar.get_width() / 2,
             bar.get_height() + 8,
             f"{val:.0f}",
             ha="center", va="bottom",
-            fontsize=8.5, color="#333",
-            fontfamily="monospace"
+            fontsize=8.5, color="#333", fontfamily="monospace"
         )
 
-    # Labels and formatting
     ax.set_xlabel("Year", fontsize=10, color="#555", labelpad=8)
     ax.set_ylabel("Total Rainfall (mm)", fontsize=10, color="#555", labelpad=8)
     ax.set_title(
@@ -407,7 +385,6 @@ def plot_rainfall_trend(seasonal_df: pd.DataFrame, district: str) -> plt.Figure:
     ax.yaxis.grid(True, linestyle="--", alpha=0.5, color="#ddd", zorder=0)
     ax.set_axisbelow(True)
 
-    # Legend
     above_patch = mpatches.Patch(color="#2d7a4f", label="Above LPA")
     below_patch = mpatches.Patch(color="#c0392b", label="Below LPA")
     lpa_line    = plt.Line2D([0], [0], color="#1a1a2e", linewidth=1.5,
@@ -420,20 +397,11 @@ def plot_rainfall_trend(seasonal_df: pd.DataFrame, district: str) -> plt.Figure:
 
 
 def plot_departure_heatmap(monthly_df: pd.DataFrame, district: str) -> plt.Figure:
-    """
-    Draws a month × year heatmap of departure % for the selected district.
-    Warm colours = excess, cool colours = deficit.
-    This lets the farmer spot which months are consistently wet or dry.
-    """
-
-    dist_monthly = monthly_df[
-        monthly_df["district_name"] == district
-    ].copy()
+    dist_monthly = monthly_df[monthly_df["district_name"] == district].copy()
 
     if dist_monthly.empty:
         return None
 
-    # Pivot into a month × year matrix
     pivot = dist_monthly.pivot_table(
         index="month", columns="year",
         values="departure_pct", aggfunc="mean"
@@ -443,21 +411,18 @@ def plot_departure_heatmap(monthly_df: pd.DataFrame, district: str) -> plt.Figur
                     "Jul","Aug","Sep","Oct","Nov","Dec"]
     pivot.index = [month_labels[m-1] for m in pivot.index]
 
-    fig, ax = plt.subplots(figsize=(6, 3.5))
+    fig, ax = plt.subplots(figsize=(10, 5))
     fig.patch.set_facecolor("#fafafa")
     ax.set_facecolor("#fafafa")
 
-    # RdYlGn: red = deficit, yellow = normal, green = excess
     im = ax.imshow(pivot.values, aspect="auto", cmap="RdYlGn",
                    vmin=-100, vmax=100)
 
-    # Axis labels
     ax.set_xticks(range(len(pivot.columns)))
     ax.set_xticklabels(pivot.columns.astype(str), fontsize=9, color="#444")
     ax.set_yticks(range(len(pivot.index)))
     ax.set_yticklabels(pivot.index, fontsize=9, color="#444")
 
-    # Annotate each cell with the departure value
     for i in range(len(pivot.index)):
         for j in range(len(pivot.columns)):
             val = pivot.values[i, j]
@@ -465,8 +430,7 @@ def plot_departure_heatmap(monthly_df: pd.DataFrame, district: str) -> plt.Figur
                 text_colour = "white" if abs(val) > 55 else "#333"
                 ax.text(j, i, f"{val:.0f}%",
                         ha="center", va="center",
-                        fontsize=7.5, color=text_colour,
-                        fontfamily="monospace")
+                        fontsize=7.5, color=text_colour, fontfamily="monospace")
 
     plt.colorbar(im, ax=ax, label="Departure from LPA (%)",
                  fraction=0.03, pad=0.04)
@@ -481,26 +445,109 @@ def plot_departure_heatmap(monthly_df: pd.DataFrame, district: str) -> plt.Figur
 
 
 # =============================================================================
+# SECTION 5 — SHAP EXPLAINABILITY
+# =============================================================================
+
+import shap
+
+@st.cache_data
+def compute_shap_values(_model_dict, input_df_json: str):
+    import json
+    input_df = pd.read_json(input_df_json)
+
+    model       = _model_dict["model"]
+    le          = _model_dict["label_encoder"]
+    class_names = list(le.classes_)
+
+    from ensemble_model import prepare_features
+    prepped_df, _ = prepare_features(input_df.copy(), is_predict=True)
+    prepped_df = prepped_df.drop(columns=["target"], errors="ignore")
+
+    feature_names = list(prepped_df.columns)
+    X = prepped_df.values
+
+    sub_models = {name: est for name, est in model.named_estimators_.items()}
+    all_shap   = []
+
+    for name, estimator in sub_models.items():
+        explainer = shap.TreeExplainer(estimator)
+        sv = explainer.shap_values(X)
+        if isinstance(sv, list):
+            sv_arr = np.array([sv[c][0] for c in range(len(class_names))])
+        else:
+            sv_arr = sv[0].T
+
+        all_shap.append(sv_arr)
+
+    shap_vals_avg = np.mean(all_shap, axis=0)
+    return shap_vals_avg, feature_names, class_names, X[0]
+
+
+def plot_shap_waterfall(shap_vals_avg, feature_names, class_names,
+                        input_values, predicted_label: str) -> plt.Figure:
+    if predicted_label in class_names:
+        cls_idx = class_names.index(predicted_label)
+    else:
+        cls_idx = 0
+
+    vals  = shap_vals_avg[cls_idx]
+    order = np.argsort(np.abs(vals))
+
+    sorted_features = [feature_names[i] for i in order]
+    sorted_vals     = [vals[i]           for i in order]
+    sorted_inputs   = [input_values[i]   for i in order]
+
+    colours = ["#2d7a4f" if v > 0 else "#b03030" for v in sorted_vals]
+
+    fig, ax = plt.subplots(figsize=(8, max(3.5, len(feature_names) * 0.38)))
+    fig.patch.set_facecolor("#fafafa")
+    ax.set_facecolor("#fafafa")
+
+    bars = ax.barh(sorted_features, sorted_vals,
+                   color=colours, height=0.55,
+                   edgecolor="white", linewidth=0.6)
+
+    for bar, inp, val in zip(bars, sorted_inputs, sorted_vals):
+        x_pos = val + (0.003 if val >= 0 else -0.003)
+        ha    = "left" if val >= 0 else "right"
+        ax.text(x_pos, bar.get_y() + bar.get_height() / 2,
+                f"  {inp:.2f}",
+                va="center", ha=ha,
+                fontsize=8, color="#444", fontfamily="monospace")
+
+    ax.axvline(x=0, color="#333", linewidth=0.8)
+    ax.set_xlabel("SHAP value  (impact on model output)", fontsize=9, color="#555")
+    ax.set_title(
+        f"Why the model predicted: {predicted_label}",
+        fontsize=12, fontweight="600", color="#1a1a2e", pad=12
+    )
+    ax.tick_params(labelsize=9, colors="#555")
+    ax.spines[["top", "right"]].set_visible(False)
+    ax.spines[["left", "bottom"]].set_color("#ddd")
+    ax.xaxis.grid(True, linestyle="--", alpha=0.4, color="#ddd")
+    ax.set_axisbelow(True)
+
+    pos_patch = mpatches.Patch(color="#2d7a4f", label="Pushes toward prediction")
+    neg_patch = mpatches.Patch(color="#b03030", label="Pulls away from prediction")
+    ax.legend(handles=[pos_patch, neg_patch], fontsize=8, framealpha=0.9, loc="lower right")
+
+    plt.tight_layout()
+    return fig
+
+
+# =============================================================================
 # SECTION 6 — SIDEBAR
 # =============================================================================
 
 def render_sidebar(data: dict) -> tuple:
-    """
-    Renders the sidebar with State, District, and June Rainfall inputs.
-    Returns (selected_state, selected_district, june_rainfall_input).
-    """
-
     st.sidebar.markdown("---")
-
     st.sidebar.markdown("#### 📍 Select Location")
 
     seasonal_df = data["seasonal"]
 
-    # State selector — populated from actual data
     states = sorted(seasonal_df["state_name"].dropna().unique().tolist())
     selected_state = st.sidebar.selectbox("State", states)
 
-    # District selector — filtered by selected state
     districts = sorted(
         seasonal_df[seasonal_df["state_name"] == selected_state]
         ["district_name"].dropna().unique().tolist()
@@ -515,7 +562,6 @@ def render_sidebar(data: dict) -> tuple:
         unsafe_allow_html=True
     )
 
-    # Get the June LPA for this district to use as the default slider value
     monthly_df = data["monthly"]
     june_lpa_rows = monthly_df[
         (monthly_df["district_name"] == selected_district) &
@@ -524,12 +570,12 @@ def render_sidebar(data: dict) -> tuple:
     june_lpa_default = float(june_lpa_rows.mean()) if len(june_lpa_rows) > 0 else 100.0
 
     june_rainfall_input = st.sidebar.number_input(
-        label       = "June Rainfall (mm)",
-        min_value   = 0.0,
-        max_value   = 1000.0,
-        value       = round(june_lpa_default, 1),
-        step        = 5.0,
-        help        = f"Historical June LPA for {selected_district}: {june_lpa_default:.1f} mm"
+        label     = "June Rainfall (mm)",
+        min_value = 0.0,
+        max_value = 1000.0,
+        value     = round(june_lpa_default, 1),
+        step      = 5.0,
+        help      = f"Historical June LPA for {selected_district}: {june_lpa_default:.1f} mm"
     )
 
     st.sidebar.markdown("---")
@@ -543,32 +589,30 @@ def render_sidebar(data: dict) -> tuple:
 
 
 # =============================================================================
-# SECTION 7 — MAIN DASHBOARD LAYOUT
+# SECTION 7 — MAIN DASHBOARD (TABBED LAYOUT)
 # =============================================================================
 
 def main():
 
-    # ── Load data and model ────────────────────────────────────────────────
-    data             = load_processed_data()
-    model = load_model()
-    seasonal_df      = data["seasonal"]
-    monthly_df       = data["monthly"]
-    probability_df   = data["probability"]
+    # ── Load data & model ─────────────────────────────────────────────────
+    data           = load_processed_data()
+    model          = load_model()
+    seasonal_df    = data["seasonal"]
+    monthly_df     = data["monthly"]
+    probability_df = data["probability"]
 
-    # ── Sidebar ────────────────────────────────────────────────────────────
+    # ── Sidebar ───────────────────────────────────────────────────────────
     selected_state, selected_district, june_rainfall_input = render_sidebar(data)
 
-    # ── Header ────────────────────────────────────────────────────────────
+    # ── Page header ───────────────────────────────────────────────────────
     st.markdown(
-        f'<div class="main-title"> {selected_district} Rainfall Outlook</div>'
-        f'<div class="main-subtitle">{selected_state} • Kharif Season Intelligence</div>',
+        f'<div class="main-title">🌧️ Rainfall Analysis Dashboard</div>'
+        f'<div class="main-subtitle">District-wise monsoon intelligence for Kharif crop planning</div>',
         unsafe_allow_html=True
     )
     st.markdown("---")
 
-    # ── Compute probabilities for selected district ────────────────────────
-
-    # 1. Empirical probability (from pipeline's 04_ file — more reliable)
+    # ── Compute probabilities ─────────────────────────────────────────────
     emp_row = probability_df[
         (probability_df["district_name"] == selected_district) &
         (probability_df["season"] == "Kharif")
@@ -576,107 +620,157 @@ def main():
     empirical_prob = float(emp_row["prob_above_normal_pct"].iloc[0]) \
                      if not emp_row.empty else None
 
-    # 2. ML model probability (based on June input)
     ml_confidence, ml_label = make_ml_prediction(
-        model,
-        selected_district, selected_state,
-        june_rainfall_input,
-        seasonal_df, monthly_df
+        model, selected_district, selected_state,
+        june_rainfall_input, seasonal_df, monthly_df
     )
 
-    # Use empirical as the primary display probability
-    # (more trustworthy with our small dataset, as explained after Step 3)
     primary_prob   = empirical_prob if empirical_prob is not None else 50.0
     primary_colour = get_colour_for_probability(primary_prob)
 
-    # ── ROW 1: Three metric cards ──────────────────────────────────────────
-    col1, col2, col3 = st.columns(3)
+    # =====================================================================
+    # TABS
+    # =====================================================================
+    tab_overview, tab_charts, tab_data, tab_compare, tab_shap = st.tabs([
+        "📊  Overview",
+        "📈  Rainfall Charts",
+        "📋  Raw Data",
+        "🗺️  Compare Districts",
+        "🔍  ML Explanation",
+    ])
 
-    with col1:
-        colour = get_colour_for_probability(primary_prob)
+    # ─────────────────────────────────────────────────────────────────────
+    # TAB 1 — OVERVIEW
+    # ─────────────────────────────────────────────────────────────────────
+    with tab_overview:
+
+        st.markdown(
+            f'<div style="font-size:1.6rem;font-weight:700;color:#2c7be5;margin-bottom:2px;">'
+            f'{selected_district} Rainfall Outlook</div>'
+            f'<div style="color:#999;font-size:1rem;margin-bottom:24px;">'
+            f'{selected_state} • Kharif Season Intelligence</div>',
+            unsafe_allow_html=True
+        )
+
+        # Three metric cards
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+            colour = get_colour_for_probability(primary_prob)
+            st.markdown(f"""
+            <div class="metric-card">
+                <div class="metric-label">Historical Probability</div>
+                <div class="metric-value-{colour}">{primary_prob:.0f}%</div>
+                <div class="metric-sublabel">Above-Normal Kharif<br>
+                ({emp_row['years_above_normal'].iloc[0] if not emp_row.empty else '—'} of
+                 {emp_row['total_years'].iloc[0] if not emp_row.empty else '—'} years)</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with col2:
+            if ml_label is not None:
+                label_colour = {"Above Normal": "green", "Normal": "orange", "Deficit": "red"}.get(ml_label, "blue")
+                ml_display   = ml_label
+                ml_note      = f"June: {june_rainfall_input:.0f} mm"
+            else:
+                label_colour = "gray"
+                ml_display   = "N/A"
+                ml_note      = "Model not loaded"
+
+            st.markdown(f"""
+            <div class="metric-card">
+                <div class="metric-label">ML Prediction</div>
+                <div class="metric-value-{label_colour}">{ml_display}</div>
+                <div class="metric-sublabel">{ml_note}<br></div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with col3:
+            last_year_row = seasonal_df[
+                (seasonal_df["district_name"] == selected_district) &
+                (seasonal_df["season"] == "Kharif")
+            ].sort_values("year", ascending=False).head(1)
+
+            if not last_year_row.empty:
+                last_year       = int(last_year_row["year"].iloc[0])
+                last_departure  = last_year_row["departure_pct"].iloc[0]
+                last_total      = last_year_row["total_rainfall_mm"].iloc[0]
+                last_lpa        = last_year_row["lpa_mm"].iloc[0]
+                dep_colour      = "green" if last_departure > 5 else ("red" if last_departure < -5 else "orange")
+                dep_sign        = "+" if last_departure > 0 else ""
+            else:
+                last_year = last_departure = last_total = last_lpa = "—"
+                dep_colour = "gray"
+                dep_sign   = ""
+
+            st.markdown(f"""
+            <div class="metric-card">
+                <div class="metric-label">Last Season ({last_year})</div>
+                <div class="metric-value-{dep_colour}">{dep_sign}{last_departure:.0f}%</div>
+                <div class="metric-sublabel">vs LPA<br>{last_total:.0f} mm actual • {last_lpa:.0f} mm LPA</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # Farmer advice card
+        st.markdown('<div class="section-header">Farmer Advisory</div>', unsafe_allow_html=True)
+        advice  = get_advice(primary_prob, selected_district)
+        colour  = primary_colour
+
+        bullet_html = "".join(f"<li style='margin-bottom:6px'>{p}</li>" for p in advice["points"])
         st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-label">Historical Probability</div>
-            <div class="metric-value-{colour}">{primary_prob:.0f}%</div>
-            <div class="metric-sublabel">Above-Normal Kharif<br>
-            ({emp_row['years_above_normal'].iloc[0] if not emp_row.empty else '—'} of {emp_row['total_years'].iloc[0] if not emp_row.empty else '—'} years)</div>
+        <div class="advice-card-{colour}">
+            <div class="advice-title">{advice['title']}</div>
+            <div class="advice-body"><ul style='margin:0;padding-left:18px'>{bullet_html}</ul></div>
         </div>
         """, unsafe_allow_html=True)
 
+    # ─────────────────────────────────────────────────────────────────────
+    # TAB 2 — RAINFALL CHARTS  (stacked: trend on top, heatmap below)
+    # ─────────────────────────────────────────────────────────────────────
+    with tab_charts:
 
-    with col2:
-        if ml_label is not None:
-            label_colour = {
-                "Above Normal": "green",
-                "Normal": "orange",
-                "Deficit": "red",
-            }.get(ml_label, "blue")
-            ml_display = ml_label
-            ml_note = f"June: {june_rainfall_input:.0f} mm"
-        else:
-            label_colour = "gray"
-            ml_display = "N/A"
-            ml_note = "Model not loaded"
+        st.markdown(
+            f'<div style="font-size:1.1rem;font-weight:600;color:#333;margin-bottom:20px;">'
+            f'Rainfall Trends for <span style="color:#2c7be5">{selected_district}</span></div>',
+            unsafe_allow_html=True
+        )
 
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-label">ML Prediction</div>
-            <div class="metric-value-{label_colour}">{ml_display}</div>
-            <div class="metric-sublabel">{ml_note}<br></div>
-        </div>
-        """, unsafe_allow_html=True)
+        # ── Chart 1: Kharif season bar chart ──
+        st.markdown('<div class="section-header">Kharif Season Totals vs LPA</div>',
+                    unsafe_allow_html=True)
 
-
-    with col3:
-        last_year_row = seasonal_df[
-            (seasonal_df["district_name"] == selected_district) &
-            (seasonal_df["season"] == "Kharif")
-        ].sort_values("year", ascending=False).head(1)
-
-        if not last_year_row.empty:
-            last_year = int(last_year_row["year"].iloc[0])
-            last_departure = last_year_row["departure_pct"].iloc[0]
-            last_total = last_year_row["total_rainfall_mm"].iloc[0]
-            last_lpa = last_year_row["lpa_mm"].iloc[0]
-            dep_colour = "green" if last_departure > 5 else ("red" if last_departure < -5 else "orange")
-            dep_sign = "+" if last_departure > 0 else ""
-        else:
-            last_year = last_departure = last_total = last_lpa = "—"
-            dep_colour = "gray"
-            dep_sign = ""
-
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-label">Last Season ({last_year})</div>
-            <div class="metric-value-{dep_colour}">{dep_sign}{last_departure:.0f}%</div>
-            <div class="metric-sublabel">vs LPA<br>{last_total:.0f} mm actual • {last_lpa:.0f} mm LPA</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # ── ROW 3: Charts ─────────────────────────────────────────────────────
-    st.markdown('<div class="section-header">Rainfall Charts</div>',
-                unsafe_allow_html=True)
-
-    chart_col1, chart_col2 = st.columns([1, 1])
-
-    with chart_col1:
         fig_trend = plot_rainfall_trend(seasonal_df, selected_district)
         if fig_trend:
             st.pyplot(fig_trend, width='stretch')
         else:
             st.info("No Kharif data available for this district.")
 
-    with chart_col2:
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # ── Chart 2: Monthly departure heatmap ──
+        st.markdown('<div class="section-header">Monthly Departure from LPA (Heatmap)</div>',
+                    unsafe_allow_html=True)
+
         fig_heat = plot_departure_heatmap(monthly_df, selected_district)
         if fig_heat:
             st.pyplot(fig_heat, width='stretch')
         else:
             st.info("No monthly data available for this district.")
-    
-    # ── ROW 4: Raw Data Table (collapsible) ───────────────────────────────
-    with st.expander("📊 View raw seasonal data for this district"):
+
+    # ─────────────────────────────────────────────────────────────────────
+    # TAB 3 — RAW DATA TABLE
+    # ─────────────────────────────────────────────────────────────────────
+    with tab_data:
+
+        st.markdown(
+            f'<div style="font-size:1.1rem;font-weight:600;color:#333;margin-bottom:8px;">'
+            f'Raw Seasonal Data — <span style="color:#2c7be5">{selected_district}</span></div>'
+            f'<div style="color:#999;font-size:0.85rem;margin-bottom:20px;">'
+            f'All years and seasons on record</div>',
+            unsafe_allow_html=True
+        )
 
         dist_seasonal = seasonal_df[
             seasonal_df["district_name"] == selected_district
@@ -685,7 +779,6 @@ def main():
             ["year","season"]
         ).reset_index(drop=True)
 
-        # Colour-code the anomaly_category column
         def colour_anomaly(val):
             colours = {
                 "Large Excess"  : "background-color: #c8f7c5",
@@ -704,17 +797,26 @@ def main():
                 "departure_pct"    : "{:+.1f}%",
             })
 
-        st.dataframe(styled, width='stretch', height=300)
+        st.dataframe(styled, width='stretch', height=500)
 
-    # ── ROW 5: District comparison (all districts, current season) ────────
-    with st.expander("🗺️ Compare all districts — Kharif above-normal probability"):
+    # ─────────────────────────────────────────────────────────────────────
+    # TAB 4 — DISTRICT COMPARISON
+    # ─────────────────────────────────────────────────────────────────────
+    with tab_compare:
+
+        st.markdown(
+            '<div style="font-size:1.1rem;font-weight:600;color:#333;margin-bottom:8px;">'
+            'All Districts — Kharif Above-Normal Probability</div>'
+            '<div style="color:#999;font-size:0.85rem;margin-bottom:20px;">'
+            f'Highlighted: <span style="color:#2c7be5;font-weight:600">{selected_district}</span></div>',
+            unsafe_allow_html=True
+        )
 
         kharif_probs = probability_df[
             probability_df["season"] == "Kharif"
         ].sort_values("prob_above_normal_pct", ascending=False).reset_index(drop=True)
 
-        # Simple horizontal bar chart
-        fig_comp, ax_comp = plt.subplots(figsize=(6, max(3, len(kharif_probs) * 0.22)))
+        fig_comp, ax_comp = plt.subplots(figsize=(9, max(4, len(kharif_probs) * 0.28)))
         fig_comp.patch.set_facecolor("#fafafa")
         ax_comp.set_facecolor("#fafafa")
 
@@ -725,8 +827,6 @@ def main():
             for p in kharif_probs["prob_above_normal_pct"]
         ]
 
-        # Highlight selected district
-        # Matplotlib barh doesn't accept a list for alpha — draw in two passes
         for i, (district, val, colour) in enumerate(zip(
             kharif_probs["district_name"],
             kharif_probs["prob_above_normal_pct"],
@@ -741,15 +841,14 @@ def main():
         ax_comp.set_xlabel("Probability of Above-Normal Kharif (%)",
                            fontsize=9, color="#555")
         ax_comp.set_title("District Comparison — Above-Normal Probability",
-                          fontsize=11, fontweight="600", color="#1a1a2e", pad=10)
+                          fontsize=12, fontweight="600", color="#1a1a2e", pad=12)
         ax_comp.tick_params(labelsize=8, colors="#555")
         ax_comp.spines[["top","right"]].set_visible(False)
         ax_comp.spines[["left","bottom"]].set_color("#ddd")
         ax_comp.xaxis.grid(True, linestyle="--", alpha=0.4, zorder=0)
         ax_comp.set_xlim(0, 105)
-        ax_comp.invert_yaxis()   # Highest probability at the top
+        ax_comp.invert_yaxis()
 
-        # Label bars
         for i, val in enumerate(kharif_probs["prob_above_normal_pct"]):
             ax_comp.text(val + 1, i,
                          f"{val:.0f}%", va="center", fontsize=7.5,
@@ -757,6 +856,101 @@ def main():
 
         plt.tight_layout()
         st.pyplot(fig_comp, width='stretch')
+
+    # ─────────────────────────────────────────────────────────────────────
+    # TAB 5 — ML / SHAP EXPLANATION
+    # ─────────────────────────────────────────────────────────────────────
+    with tab_shap:
+
+        st.markdown(
+            '<div style="font-size:1.1rem;font-weight:600;color:#333;margin-bottom:8px;">'
+            'Why did the model predict this?</div>'
+            '<div style="color:#999;font-size:0.85rem;margin-bottom:20px;">'
+            'SHAP feature importance for the current prediction</div>',
+            unsafe_allow_html=True
+        )
+
+        if model is None:
+            st.markdown(
+                '<div class="warn-banner">⚠️ Model not loaded — SHAP explanation unavailable. '
+                'Ensure <code>rainfall_ensemble_model.pkl</code> is present.</div>',
+                unsafe_allow_html=True
+            )
+        elif ml_label is None:
+            st.markdown(
+                '<div class="info-banner">Run a prediction first by entering June rainfall in the sidebar.</div>',
+                unsafe_allow_html=True
+            )
+        else:
+            try:
+                # Rebuild input_df for SHAP (mirrors make_ml_prediction logic)
+                from sklearn.preprocessing import LabelEncoder
+
+                june_rows = monthly_df[
+                    (monthly_df["district_name"] == selected_district) &
+                    (monthly_df["month"] == 6)
+                ].sort_values("year")
+                if june_rows.empty:
+                    june_rows = monthly_df[monthly_df["district_name"] == selected_district]\
+                                .sort_values(["year","month"])
+
+                base_row = june_rows.tail(1).copy()
+
+                input_data = {
+                    'year'             : int(base_row['year'].iloc[0]) if 'year' in base_row.columns else 2024,
+                    'month'            : 6,
+                    'total_rainfall_mm': june_rainfall_input,
+                    'rainy_days'       : int(base_row['rainy_days'].iloc[0]) if 'rainy_days' in base_row.columns else 15,
+                    'data_days'        : int(base_row['data_days'].iloc[0]) if 'data_days' in base_row.columns else 30,
+                    'mean_spi_30d'     : float(base_row['mean_spi_30d'].iloc[0]) if 'mean_spi_30d' in base_row.columns else 0.0,
+                    'lpa_mm'           : float(base_row['lpa_mm'].iloc[0]) if 'lpa_mm' in base_row.columns else june_rainfall_input,
+                    'month_sin'        : np.sin(2 * np.pi * 6 / 12),
+                    'month_cos'        : np.cos(2 * np.pi * 6 / 12),
+                }
+
+                le_d = LabelEncoder(); le_s = LabelEncoder()
+                le_d.fit(monthly_df["district_name"].astype(str).unique())
+                le_s.fit(monthly_df["state_name"].astype(str).unique())
+                input_data['district_name_enc'] = le_d.transform([selected_district])[0]
+                input_data['state_name_enc']    = le_s.transform([selected_state])[0] \
+                                                  if selected_state in le_s.classes_ else 0
+
+                june_lpa     = input_data['lpa_mm']
+                departure_pct = ((june_rainfall_input - june_lpa) / june_lpa * 100) if june_lpa > 0 else 0.0
+                input_df = pd.DataFrame([input_data])
+                input_df['departure_pct'] = departure_pct
+                input_df['state_name']    = selected_state
+                input_df['district_name'] = selected_district
+
+                input_json = input_df.to_json()
+
+                with st.spinner("Computing SHAP explanations…"):
+                    shap_vals, feat_names, class_names, input_vals = compute_shap_values(
+                        model, input_json
+                    )
+
+                fig_shap = plot_shap_waterfall(shap_vals, feat_names, class_names,
+                                               input_vals, ml_label)
+                st.pyplot(fig_shap, width='stretch')
+
+                top_idx   = int(np.argmax(np.abs(shap_vals[class_names.index(ml_label)])))
+                top_feat  = feat_names[top_idx]
+                top_val   = shap_vals[class_names.index(ml_label)][top_idx]
+                direction = "toward" if top_val > 0 else "away from"
+
+                st.markdown(
+                    f'<div class="info-banner">'
+                    f'<b>Most influential feature:</b> <code>{top_feat}</code> '
+                    f'— pushed the prediction <b>{direction}</b> <em>{ml_label}</em>.'
+                    f'</div>',
+                    unsafe_allow_html=True
+                )
+
+            except Exception as e:
+                st.markdown(
+                    f'<div class="warn-banner">SHAP computation failed: {e}</div>',
+                    unsafe_allow_html=True
+                )
 
 
 # =============================================================================
